@@ -13,12 +13,6 @@ import * as graphql from "@nestjs/graphql";
 import { GraphQLError } from "graphql";
 import { isRecordNotFoundError } from "../../prisma.util";
 import { MetaQueryPayload } from "../../util/MetaQueryPayload";
-import * as nestAccessControl from "nest-access-control";
-import * as gqlACGuard from "../../auth/gqlAC.guard";
-import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
-import * as common from "@nestjs/common";
-import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
-import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Note } from "./Note";
 import { NoteCountArgs } from "./NoteCountArgs";
 import { NoteFindManyArgs } from "./NoteFindManyArgs";
@@ -28,20 +22,10 @@ import { UpdateNoteArgs } from "./UpdateNoteArgs";
 import { DeleteNoteArgs } from "./DeleteNoteArgs";
 import { List } from "../../list/base/List";
 import { NoteService } from "../note.service";
-@common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Note)
 export class NoteResolverBase {
-  constructor(
-    protected readonly service: NoteService,
-    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
-  ) {}
+  constructor(protected readonly service: NoteService) {}
 
-  @graphql.Query(() => MetaQueryPayload)
-  @nestAccessControl.UseRoles({
-    resource: "Note",
-    action: "read",
-    possession: "any",
-  })
   async _notesMeta(
     @graphql.Args() args: NoteCountArgs
   ): Promise<MetaQueryPayload> {
@@ -51,24 +35,12 @@ export class NoteResolverBase {
     };
   }
 
-  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => [Note])
-  @nestAccessControl.UseRoles({
-    resource: "Note",
-    action: "read",
-    possession: "any",
-  })
   async notes(@graphql.Args() args: NoteFindManyArgs): Promise<Note[]> {
     return this.service.notes(args);
   }
 
-  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.Query(() => Note, { nullable: true })
-  @nestAccessControl.UseRoles({
-    resource: "Note",
-    action: "read",
-    possession: "own",
-  })
   async note(@graphql.Args() args: NoteFindUniqueArgs): Promise<Note | null> {
     const result = await this.service.note(args);
     if (result === null) {
@@ -77,13 +49,7 @@ export class NoteResolverBase {
     return result;
   }
 
-  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => Note)
-  @nestAccessControl.UseRoles({
-    resource: "Note",
-    action: "create",
-    possession: "any",
-  })
   async createNote(@graphql.Args() args: CreateNoteArgs): Promise<Note> {
     return await this.service.createNote({
       ...args,
@@ -99,13 +65,7 @@ export class NoteResolverBase {
     });
   }
 
-  @common.UseInterceptors(AclValidateRequestInterceptor)
   @graphql.Mutation(() => Note)
-  @nestAccessControl.UseRoles({
-    resource: "Note",
-    action: "update",
-    possession: "any",
-  })
   async updateNote(@graphql.Args() args: UpdateNoteArgs): Promise<Note | null> {
     try {
       return await this.service.updateNote({
@@ -131,11 +91,6 @@ export class NoteResolverBase {
   }
 
   @graphql.Mutation(() => Note)
-  @nestAccessControl.UseRoles({
-    resource: "Note",
-    action: "delete",
-    possession: "any",
-  })
   async deleteNote(@graphql.Args() args: DeleteNoteArgs): Promise<Note | null> {
     try {
       return await this.service.deleteNote(args);
@@ -149,15 +104,9 @@ export class NoteResolverBase {
     }
   }
 
-  @common.UseInterceptors(AclFilterResponseInterceptor)
   @graphql.ResolveField(() => List, {
     nullable: true,
     name: "list",
-  })
-  @nestAccessControl.UseRoles({
-    resource: "List",
-    action: "read",
-    possession: "any",
   })
   async getList(@graphql.Parent() parent: Note): Promise<List | null> {
     const result = await this.service.getList(parent.id);
