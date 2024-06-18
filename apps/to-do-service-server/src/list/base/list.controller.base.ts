@@ -16,7 +16,11 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { ListService } from "../list.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { ListCreateInput } from "./ListCreateInput";
 import { List } from "./List";
 import { ListFindManyArgs } from "./ListFindManyArgs";
@@ -28,10 +32,24 @@ import { NoteWhereUniqueInput } from "../../note/base/NoteWhereUniqueInput";
 import { ShareListInputDto } from "../ShareListInputDto";
 import { ShareListOutputDto } from "../ShareListOutputDto";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class ListControllerBase {
-  constructor(protected readonly service: ListService) {}
+  constructor(
+    protected readonly service: ListService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: List })
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async createList(@common.Body() data: ListCreateInput): Promise<List> {
     return await this.service.createList({
       data: {
@@ -58,9 +76,18 @@ export class ListControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [List] })
   @ApiNestedQuery(ListFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async lists(@common.Req() request: Request): Promise<List[]> {
     const args = plainToClass(ListFindManyArgs, request.query);
     return this.service.lists({
@@ -80,9 +107,18 @@ export class ListControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: List })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async list(
     @common.Param() params: ListWhereUniqueInput
   ): Promise<List | null> {
@@ -109,9 +145,18 @@ export class ListControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: List })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async updateList(
     @common.Param() params: ListWhereUniqueInput,
     @common.Body() data: ListUpdateInput
@@ -154,6 +199,14 @@ export class ListControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: List })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteList(
     @common.Param() params: ListWhereUniqueInput
   ): Promise<List | null> {
@@ -183,8 +236,14 @@ export class ListControllerBase {
     }
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id/notes")
   @ApiNestedQuery(NoteFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Note",
+    action: "read",
+    possession: "any",
+  })
   async findNotes(
     @common.Req() request: Request,
     @common.Param() params: ListWhereUniqueInput
@@ -216,6 +275,11 @@ export class ListControllerBase {
   }
 
   @common.Post("/:id/notes")
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "update",
+    possession: "any",
+  })
   async connectNotes(
     @common.Param() params: ListWhereUniqueInput,
     @common.Body() body: NoteWhereUniqueInput[]
@@ -233,6 +297,11 @@ export class ListControllerBase {
   }
 
   @common.Patch("/:id/notes")
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "update",
+    possession: "any",
+  })
   async updateNotes(
     @common.Param() params: ListWhereUniqueInput,
     @common.Body() body: NoteWhereUniqueInput[]
@@ -250,6 +319,11 @@ export class ListControllerBase {
   }
 
   @common.Delete("/:id/notes")
+  @nestAccessControl.UseRoles({
+    resource: "List",
+    action: "update",
+    possession: "any",
+  })
   async disconnectNotes(
     @common.Param() params: ListWhereUniqueInput,
     @common.Body() body: NoteWhereUniqueInput[]

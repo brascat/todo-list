@@ -16,17 +16,35 @@ import * as errors from "../../errors";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
+import * as nestAccessControl from "nest-access-control";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { NoteService } from "../note.service";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
+import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { NoteCreateInput } from "./NoteCreateInput";
 import { Note } from "./Note";
 import { NoteFindManyArgs } from "./NoteFindManyArgs";
 import { NoteWhereUniqueInput } from "./NoteWhereUniqueInput";
 import { NoteUpdateInput } from "./NoteUpdateInput";
 
+@swagger.ApiBearerAuth()
+@common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class NoteControllerBase {
-  constructor(protected readonly service: NoteService) {}
+  constructor(
+    protected readonly service: NoteService,
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+  ) {}
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Note })
+  @nestAccessControl.UseRoles({
+    resource: "Note",
+    action: "create",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async createNote(@common.Body() data: NoteCreateInput): Promise<Note> {
     return await this.service.createNote({
       data: {
@@ -55,9 +73,18 @@ export class NoteControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
   @swagger.ApiOkResponse({ type: [Note] })
   @ApiNestedQuery(NoteFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Note",
+    action: "read",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async notes(@common.Req() request: Request): Promise<Note[]> {
     const args = plainToClass(NoteFindManyArgs, request.query);
     return this.service.notes({
@@ -79,9 +106,18 @@ export class NoteControllerBase {
     });
   }
 
+  @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
   @swagger.ApiOkResponse({ type: Note })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Note",
+    action: "read",
+    possession: "own",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async note(
     @common.Param() params: NoteWhereUniqueInput
   ): Promise<Note | null> {
@@ -110,9 +146,18 @@ export class NoteControllerBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
   @swagger.ApiOkResponse({ type: Note })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Note",
+    action: "update",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async updateNote(
     @common.Param() params: NoteWhereUniqueInput,
     @common.Body() data: NoteUpdateInput
@@ -157,6 +202,14 @@ export class NoteControllerBase {
   @common.Delete("/:id")
   @swagger.ApiOkResponse({ type: Note })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
+  @nestAccessControl.UseRoles({
+    resource: "Note",
+    action: "delete",
+    possession: "any",
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
   async deleteNote(
     @common.Param() params: NoteWhereUniqueInput
   ): Promise<Note | null> {
