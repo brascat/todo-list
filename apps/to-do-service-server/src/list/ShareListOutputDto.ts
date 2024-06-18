@@ -1,10 +1,7 @@
-import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 
-@ObjectType("ShareListOutputDtoObject")
 class ShareListOutputDto {
-    @Field(() => Boolean)
     @ApiProperty({
         required: true,
         type: () => Boolean
@@ -12,7 +9,6 @@ class ShareListOutputDto {
     @Type(() => Boolean)
     success!: boolean;
 
-    @Field(() => String)
     @ApiProperty({
         required: true,
         type: () => String
