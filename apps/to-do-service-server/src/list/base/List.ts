@@ -11,9 +11,17 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString, ValidateNested, IsOptional } from "class-validator";
+import {
+  IsDate,
+  IsInt,
+  ValidateNested,
+  IsOptional,
+  IsEnum,
+  IsString,
+} from "class-validator";
 import { Type } from "class-transformer";
 import { Note } from "../../note/base/Note";
+import { EnumListStatus } from "./EnumListStatus";
 import { User } from "../../user/base/User";
 
 @ObjectType()
@@ -28,11 +36,11 @@ class List {
 
   @ApiProperty({
     required: true,
-    type: String,
+    type: Number,
   })
-  @IsString()
-  @Field(() => String)
-  id!: string;
+  @IsInt()
+  @Field(() => Number)
+  id!: number;
 
   @ApiProperty({
     required: false,
@@ -45,14 +53,22 @@ class List {
 
   @ApiProperty({
     required: false,
+    enum: EnumListStatus,
+  })
+  @IsEnum(EnumListStatus)
+  @IsOptional()
+  @Field(() => EnumListStatus, {
+    nullable: true,
+  })
+  status?: "InProgress" | "Done" | "NotStarted" | null;
+
+  @ApiProperty({
+    required: true,
     type: String,
   })
   @IsString()
-  @IsOptional()
-  @Field(() => String, {
-    nullable: true,
-  })
-  title!: string | null;
+  @Field(() => String)
+  title!: string;
 
   @ApiProperty({
     required: true,

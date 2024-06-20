@@ -12,8 +12,9 @@ https://docs.amplication.com/how-to/custom-code
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
 import { NoteUpdateManyWithoutListsInput } from "./NoteUpdateManyWithoutListsInput";
-import { ValidateNested, IsOptional, IsString } from "class-validator";
+import { ValidateNested, IsOptional, IsEnum, IsString } from "class-validator";
 import { Type } from "class-transformer";
+import { EnumListStatus } from "./EnumListStatus";
 import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
 
 @InputType()
@@ -32,6 +33,17 @@ class ListUpdateInput {
 
   @ApiProperty({
     required: false,
+    enum: EnumListStatus,
+  })
+  @IsEnum(EnumListStatus)
+  @IsOptional()
+  @Field(() => EnumListStatus, {
+    nullable: true,
+  })
+  status?: "InProgress" | "Done" | "NotStarted" | null;
+
+  @ApiProperty({
+    required: false,
     type: String,
   })
   @IsString()
@@ -39,7 +51,7 @@ class ListUpdateInput {
   @Field(() => String, {
     nullable: true,
   })
-  title?: string | null;
+  title?: string;
 
   @ApiProperty({
     required: false,
