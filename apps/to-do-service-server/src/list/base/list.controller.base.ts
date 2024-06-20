@@ -64,6 +64,7 @@ export class ListControllerBase {
       select: {
         createdAt: true,
         id: true,
+        status: true,
         title: true,
         updatedAt: true,
 
@@ -95,6 +96,7 @@ export class ListControllerBase {
       select: {
         createdAt: true,
         id: true,
+        status: true,
         title: true,
         updatedAt: true,
 
@@ -127,6 +129,7 @@ export class ListControllerBase {
       select: {
         createdAt: true,
         id: true,
+        status: true,
         title: true,
         updatedAt: true,
 
@@ -176,6 +179,7 @@ export class ListControllerBase {
         select: {
           createdAt: true,
           id: true,
+          status: true,
           title: true,
           updatedAt: true,
 
@@ -216,6 +220,7 @@ export class ListControllerBase {
         select: {
           createdAt: true,
           id: true,
+          status: true,
           title: true,
           updatedAt: true,
 

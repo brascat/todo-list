@@ -43,7 +43,7 @@ export class ListServiceBase {
   }
 
   async findNotes(
-    parentId: string,
+    parentId: number,
     args: Prisma.NoteFindManyArgs
   ): Promise<PrismaNote[]> {
     return this.prisma.list
@@ -53,7 +53,7 @@ export class ListServiceBase {
       .notes(args);
   }
 
-  async getUser(parentId: string): Promise<PrismaUser | null> {
+  async getUser(parentId: number): Promise<PrismaUser | null> {
     return this.prisma.list
       .findUnique({
         where: { id: parentId },

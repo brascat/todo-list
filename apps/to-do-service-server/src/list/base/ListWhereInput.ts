@@ -11,25 +11,26 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { StringFilter } from "../../util/StringFilter";
+import { IntFilter } from "../../util/IntFilter";
 import { Type } from "class-transformer";
-import { IsOptional, ValidateNested } from "class-validator";
+import { IsOptional, ValidateNested, IsEnum } from "class-validator";
 import { NoteListRelationFilter } from "../../note/base/NoteListRelationFilter";
-import { StringNullableFilter } from "../../util/StringNullableFilter";
+import { EnumListStatus } from "./EnumListStatus";
+import { StringFilter } from "../../util/StringFilter";
 import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
 
 @InputType()
 class ListWhereInput {
   @ApiProperty({
     required: false,
-    type: StringFilter,
+    type: IntFilter,
   })
-  @Type(() => StringFilter)
+  @Type(() => IntFilter)
   @IsOptional()
-  @Field(() => StringFilter, {
+  @Field(() => IntFilter, {
     nullable: true,
   })
-  id?: StringFilter;
+  id?: IntFilter;
 
   @ApiProperty({
     required: false,
@@ -45,14 +46,25 @@ class ListWhereInput {
 
   @ApiProperty({
     required: false,
-    type: StringNullableFilter,
+    enum: EnumListStatus,
   })
-  @Type(() => StringNullableFilter)
+  @IsEnum(EnumListStatus)
   @IsOptional()
-  @Field(() => StringNullableFilter, {
+  @Field(() => EnumListStatus, {
     nullable: true,
   })
-  title?: StringNullableFilter;
+  status?: "InProgress" | "Done" | "NotStarted";
+
+  @ApiProperty({
+    required: false,
+    type: StringFilter,
+  })
+  @Type(() => StringFilter)
+  @IsOptional()
+  @Field(() => StringFilter, {
+    nullable: true,
+  })
+  title?: StringFilter;
 
   @ApiProperty({
     required: false,
